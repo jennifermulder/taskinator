@@ -67,6 +67,7 @@ var createTaskEl = function(taskDataObj) {
 
     //add task as a custom attribute
     listItemEl.setAttribute("data-task-id", taskIdCounter);
+    listItemEl.setAttribute("draggable", "true");
 
     // create div to hold task info and add to list item
     var taskInfoEl = document.createElement("div");
@@ -195,4 +196,49 @@ var taskStatusChangeHandler = function(event) {
       }
 };
 
+var dragTaskHandler = function(event) {
+    var taskId = event.target.getAttribute("data-task-id");
+    event.dataTransfer.setData("text/plain", taskId);
+    var getId = event.dataTransfer.getData("text/plain");
+    console.log("getId:", getId, typeof getId);
+}
+
+var dropZoneDragHandler = function(event) {
+    var taskListEl = event.target.closest(".task-list");
+    if (taskListEl) {
+        event.preventDefault();
+     }
+};
+
+var dropTaskHandler = function(event) {
+    //create reference to data-task-id value (id for dragged item)
+    var id = event.dataTransfer.getData("text/plain");
+    //search for the dragged task item (by id) - specific LI (task item)
+    var draggableElement = document.querySelector("[data-task-id='" + id + "']");
+    //which task list is closest to the drop(identify drop zone)
+    var dropZoneEl = event.target.closest(".task-list");
+    //create reference to list type: retrieve "id" property of task ex. "id=tasks-to-do"
+    var statusType = dropZoneEl.id;
+    // var for the status type from select within the dragable element
+    var statusSelectEl = draggableElement.querySelector("select[name='status-change']");
+    //assigns index position # to status types
+    if (statusType === "tasks-to-do") {
+        statusSelectEl.selectedIndex = 0;
+      } 
+      else if (statusType === "tasks-in-progress") {
+        statusSelectEl.selectedIndex = 1;
+      } 
+      else if (statusType === "tasks-completed") {
+        statusSelectEl.selectedIndex = 2;
+      }
+    //append the drop zone with the draggable element
+    dropZoneEl.appendChild(draggableElement);
+};
+
 pageContentEl.addEventListener("change", taskStatusChangeHandler);
+
+pageContentEl.addEventListener("dragstart", dragTaskHandler);
+
+pageContentEl.addEventListener("dragover", dropZoneDragHandler);
+
+pageContentEl.addEventListener("drop", dropTaskHandler);
